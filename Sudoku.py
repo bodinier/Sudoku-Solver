@@ -2,7 +2,6 @@ class grille :
     """Classe d'une grille : objet contenant neuf carrés stockés sous forme d'une matrice """
     def __init__(self, grille) :
         self.grille = grille
-        #ex grille[1][2] est le deuxieme carré
 
     def print_grille(self) :
         print(" ______________________________")
@@ -14,60 +13,67 @@ class grille :
             print('')
             print(" ______________________________")
 
-    def possible_ligne(self, x, y) :
-        """Prend en argument une coordonnée (x,y) et renvoit quelles sont les valeurs possibles en fonction des autres valeurs sur la ligne"""
-    pass
-    
-
-class carre :
-    """Classe d'une carre dans la grille qui est une matrice 3x3 où chaque case contient un entier entre 1 et 9"""
-    def __init__(self, valeurs) :
-        self.valeurs = valeurs
-    #ex : valeurs = [2, 3, 1, 4, 7, 8, 6, 9, 5]
-
-    def print_carre(self) :
-        for i in range(3) :
-            for j in range(3) :
-                print(self.valeurs[i][j], end = '')
-            print('')
-    pass
-
-class case :
-    def __init_(self, valeur)
-        self.valeur = valeur
-    pass
-                  
-A = [[1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2, 3, 4, 5, 6, 7, 8, 9]]
-"""
-grille1 = grille(A)
-grille1.print_grille()
-"""
-
-def possible_ligne(self, x, y) :
-        """Prend en argument une coordonnée (x,y) et renvoit quelles sont les valeurs possibles en fonction des autres valeurs sur la ligne"""
+    def ligne(self, x, y) :
+        """"Prend une coordonnée et renvoit la ligne correspondante"""
         if x<1 or x >9 or y<1 or y>9 :
+            print("mauvaise valeurs de coordonnées)
+            return None
+        L = []
+        for i in range(9) :
+            L.append(self.grille[x][i])
+        return L
+
+    def colonne(self, x, y) :
+        """"Prend une coordonnée et renvoit la ligne correspondante"""
+        if x<1 or x >9 or y<1 or y>9 :
+            print("mauvaise valeurs de coordonnées)
+            return None
+        L = []
+        for i in range(9) :
+            L.append(self.grille[i][y])
+        return L
+
+    def carre(self, x, y)
+        """Prend une coordonnée et renvoit la carré dans lequelle le point vit""""
+        if x<1 or x >9 or y<1 or y>9 :
+            print("mauvaise valeurs de coordonnées)
+            return None
+        M = [[], [], []]
+        #On appelle (x0, y0) la coordonnée du centre du carré en question
+        x0 = 3*(x//3)+1
+        y0 = 3*(y//3)+1
+        i = x0-1
+        while i<=x0+1 :
+                  j = y0-1
+                  while j<=y0+1 :
+                      M[i].append(grille[i][j])
+        return M
+    
+def possible_ligne(self, ligne, x) :
+        """Prend en argument une ligne et un indice x et renvoit quelles sont les valeurs possibles en fonction des autres valeurs sur la ligne"""
+        if x<1 or x >9 :
             print("mauvaise valeurs de coordonnées)
             return None
         possible = {1 : True, 2 : True, 3 : True, 4 : True, 5 : True, 6 : True, 7 : True, 8 : True, 9 : True}
         L_possible = []
         for i in range(9) :
-            if 0<grille[x][i]<10 and i != y :
-                possible[grille[x][i]] = False
+            if 0<ligne[i]<10 and i != x :
+                possible[ligne[i]] = False
         for j in range(9) :
             if possible[j] :
                 L_possible.append(j)
         return L_possible
 
-def possible_colonne(self, x, y) :
-        """Prend en argument une coordonnée (x,y) et renvoit quelles sont les valeurs possibles en fonction des autres valeurs sur la ligne"""
-        if x<1 or x >9 or y<1 or y>9 :
+def possible_colonne(self, colonne, y) :
+        """Prend en argument une colonne et un indice y et renvoit quelles sont les valeurs possibles en fonction des autres valeurs sur la ligne"""
+        if x<1 or x >9 :
             print("mauvaise valeurs de coordonnées)
             return None
         possible = {1 : True, 2 : True, 3 : True, 4 : True, 5 : True, 6 : True, 7 : True, 8 : True, 9 : True}
         L_possible = []
         for i in range(9) :
-            if 0<grille[i][y]<10 and i != x :
-                possible[grille[i][x]] = False
+            if 0<colonne[i]<10 and i != y :
+                possible[ligne[i]] = False
         for j in range(9) :
             if possible[j] :
                 L_possible.append(j)
@@ -87,9 +93,13 @@ def possible_carre(self, x, y) :
                           possible[grille[i][j]] = False
         return L_possible
 
-
-
-
-  
-
-
+class case :
+    def __init_(self, valeur)
+        self.valeur = valeur
+    pass
+                  
+A = [[1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2, 3, 4, 5, 6, 7, 8, 9]]
+"""
+grille1 = grille(A)
+grille1.print_grille()
+"""
