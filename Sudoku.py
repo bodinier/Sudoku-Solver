@@ -2,6 +2,8 @@ class grille :
     """Classe d'une grille : objet contenant neuf carrés stockés sous forme d'une matrice """
     def __init__(self, grille) :
         self.grille = grille
+        self.taille = len(grille[0])
+        self.dicoliste = {}
 
     def printg(self) :
         for i in range(9) :
@@ -16,6 +18,8 @@ class grille :
                 print('')
             print('')
 
+    def grid(self) :
+        return self.grille
 
     def ligne(self, x, y) :
         """"Prend une coordonnée et renvoit la ligne correspondante"""
@@ -47,12 +51,14 @@ class grille :
         x0 = 3*(x//3)+1
         y0 = 3*(y//3)+1
         i = x0-1
+        c = 0
         while i<=x0+1 :
             j = y0-1
             while j<=y0+1 :
-                M[i].append(self.grille[i][j])
+                M[c].append(self.grille[i][j])
                 j +=1
-            i +=1      
+            i +=1
+            c +=1
         return M
     
     def possible_ligne(self,x, y) :
@@ -105,6 +111,9 @@ class grille :
             return L_possible
 
     def possible_x_y(self, x, y) :
+        if self.grille[x][y] != 0 :
+            print("Cette valeur est déjà connue ! (", self.grille[x][y], ")")
+            return None
         possible = {1 : True, 2 : True, 3 : True, 4 : True, 5 : True, 6 : True, 7 : True, 8 : True, 9 : True}
         L1 = self.possible_ligne(x, y)
         L2 = self.possible_colonne(x,y)
@@ -116,20 +125,65 @@ class grille :
         for i in range(1, 10) :
             if possible[i] :
                 L_possible.append(i)
-        return L_possible
+        return (L_possible)
+    
+    def ecrire(self, x, y, valeur) :
+        """Ecrit une valeur ou une liste de valeurs possibles dans la case de coord (x,y)"""
+        self.grille[x][y] = valeur
+
+    def cherche_tous_possible(self) :
+        for i in range(9) :
+            for j in range(9) :
+                if self.grille[i][j] == 0 :
+                    L_possible = self.possible_x_y(i,j)
+                    self.dicoliste[(i,j)] = L_possible
+        return self.dicoliste
+
+    def miniz (self) :
+        m = 9
+        coord = (0,0)
+        for (i,j) in self.dicoliste :
+            if len(self.dicoliste[(i,j)]) < m :
+                m = len(self.dicoliste[(i,j)])
+                coord = (i,j)
+        print("coordonnées = ", coord, " valeur : " , self.dicoliste[coord])
+        return (coord, self.dicoliste[coord], m)
+
+    def certain (self) :
+        self.cherche_tous_possible()
+        M = self.miniz()
+        while M[2] == 1 :
+            print("On place à la coordonée", M[0], "le chiffre", M[1])
+            self.grille[M[0][0]][M[0][1]] = M[1][0]
+            self.dicoliste = {}
+            print(M)
+            self.printg()
+            self.cherche_tous_possible()                
+            M = self.miniz()
+        return None
+                                 
             
 
 
-                  
+
 A = [[1, 0, 0, 0, 0, 6, 7, 8, 9], [0, 2, 0, 4, 5, 6, 7, 8, 9], [1, 0, 7, 2, 0, 6, 0, 0, 9], [2, 1, 0,0 ,7 , 0, 3, 0, 0], [1, 0, 3, 0, 5, 0, 7, 2, 0], [8, 0, 0, 2, 0, 0, 0, 3, 9], [0, 2, 3, 4, 5, 6, 7, 8, 9], [1, 0, 3, 4, 2, 6, 0, 0, 0], [1, 2, 3, 4, 5, 6, 7, 8, 9]]
 B =[[0,4,0,0,0,2,0,1,9],[0,0,0,3,5,1,0,8,6],[3,1,0,0,9,4,7,0,0],[0,9,4,0,0,0,0,0,7],[0,0,0,0,0,0,0,0,0],[2,0,0,0,0,0,8,9,0],[0,0,9,5,2,0,0,4,1],[4,2,0,1,6,9,0,0,0],[1,6,0,8,0,0,0,7,0]]
+C=[[0,9,2,0,0,4,7,0,0],[1,5,0,0,6,0,2,0,8],[0,0,0,0,1,2,0,4,9],[0,0,0,0,5,8,6,0,0],[8,4,0,0,3,0,0,5,2],[0,0,3,2,9,0,0,0,0],[6,1,0,8,4,0,0,0,0],[2,0,5,0,7,0,0,6,1],[0,0,7,6,0,0,8,9,0]]
 
-grille1 = grille(B)
+
+grille1 = grille(C)
 grille1.printg()
 
+def miniz (dico) :
+        m = 9
+        coord = (0,0)
+        for (i,j) in dico :
+            if len(dico[(i,j)]) < m :
+                m = len(dico[(i,j)])
+                coord = (i,j)
+        print("coordonnées = ", coord, " valeur : " , dico[coord])
+        return (coord, dico[coord], m)
 
-print(grille1.possible_ligne(0,0))
-print(grille1.possible_colonne(0,0))
-print(grille1.possible_carre(0,0))
-print(grille1.possible_x_y(0,0))
-
+dicotest = grille1.cherche_tous_possible()
+R = miniz(dicotest)
+grille1.certain()
