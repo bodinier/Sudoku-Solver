@@ -1,11 +1,14 @@
+import time
+
+
 class grille :
-    """Classe d'une grille : objet contenant neuf carrés stockés sous forme d'une matrice """
+    """Classe d'une grille : matrice carrée où chaque case est soit un zéro soit un entier entre 1 et 9"""
     def __init__(self, grille) :
         self.grille = grille
-        self.taille = len(grille[0])
-        self.dicoliste = {}
+        self.possibilitees_par_case = {}
 
-    def printg(self) :
+    def print_grille(self) :
+        """Méthode qui affiche la grille"""
         for i in range(9) :
             for j in range(9) :
                 if j == 0 :
@@ -19,10 +22,11 @@ class grille :
             print('')
 
     def grid(self) :
+        """Permet d'acccéder à la grille"""
         return self.grille
 
     def ligne(self, x, y) :
-        """"Prend une coordonnée et renvoit la ligne correspondante"""
+        """"Prend les coordonnée d'une case et renvoit la ligne (sous forme de liste) sur laquelle cette case se trouve"""
         if x<0 or x >8 or y<0 or y>8 :
             print("mauvaise valeurs de coordonnées")
             return None
@@ -32,7 +36,7 @@ class grille :
         return L
 
     def colonne(self, x, y) :
-        """"Prend une coordonnée et renvoit la ligne correspondante"""
+        """Prend les coordonnée d'une case et renvoit la colonne (sous forme de liste) sur laquelle cette case se trouve"""
         if x<0 or x >8 or y<0 or y>8 :
             print("mauvaise valeurs de coordonnées")
             return None
@@ -42,11 +46,11 @@ class grille :
         return L
 
     def carre(self, x, y) :
-        """Prend une coordonnée et renvoit la carré dans lequelle le point vit"""
+        """Prend les coordonnée d'une case et renvoit dans  lequelle cette case se trouve sous forme de matrice 3x3"""
         if x<0 or x >8 or y<0 or y>8 :
             print("mauvaise valeurs de coordonnées")
             return None
-        M = [[], [], []]
+        M = [[], [], []] #Initialisation de la matrice
         #On appelle (x0, y0) la coordonnée du centre du carré en question
         x0 = 3*(x//3)+1
         y0 = 3*(y//3)+1
@@ -62,13 +66,15 @@ class grille :
         return M
     
     def possible_ligne(self,x, y) :
-            """Prend en argument une ligne et un indice x et renvoit quelles sont les valeurs possibles en fonction des autres valeurs sur la ligne"""
+            """Prend en argument les coordonées d'une case et  renvoit quelles sont les valeurs possibles en fonction des autres valeurs sur la ligne"""
             if x<0 or x >8 :
                 print("mauvaise valeurs de coordonnées")
                 return None
+            #On va créer une liste initialisée à toutes les valeurs sont possibles, puis on les barre 
+            #au fur et à mesure
             possible = {1 : True, 2 : True, 3 : True, 4 : True, 5 : True, 6 : True, 7 : True, 8 : True, 9 : True}
             L_possible = []
-            ligne1 = self.ligne(x, y)
+            ligne1 = self.ligne(x, y) #extraction de la ligne
             for i in range(9) :
                 if 0<ligne1[i]<10 and i != x :
                     possible[ligne1[i]] = False
@@ -84,7 +90,7 @@ class grille :
                 return None
             possible = {1 : True, 2 : True, 3 : True, 4 : True, 5 : True, 6 : True, 7 : True, 8 : True, 9 : True}
             L_possible = []
-            colonne = self.colonne(x, y)
+            colonne = self.colonne(x, y) # extraction de la colonne
             for i in range(9) :
                 if 0<colonne[i]<10 and i != y :
                     possible[colonne[i]] = False
@@ -98,7 +104,7 @@ class grille :
             if x<0 or x >8 or y<0 or y>8 :
                 print("mauvaise valeurs de coordonnées")
                 return None
-            M = self.carre(x, y)
+            M = self.carre(x, y) # extraction du carré
             possible = {1 : True, 2 : True, 3 : True, 4 : True, 5 : True, 6 : True, 7 : True, 8 : True, 9 : True}
             L_possible = []
             for i in range(3) :
@@ -111,6 +117,7 @@ class grille :
             return L_possible
 
     def possible_x_y(self, x, y) :
+        """Prend les coordoonnées d'une case et renvoit quelles sont les valeurs possibles"""
         if self.grille[x][y] != 0 :
             print("Cette valeur est déjà connue ! (", self.grille[x][y], ")")
             return None
@@ -119,6 +126,7 @@ class grille :
         L2 = self.possible_colonne(x,y)
         L3 = self.possible_carre(x, y)
         L_possible = []
+        # On va juste faire l'intersection des possibilités selon lignes, colonnes et carrés
         for x in possible :
             if x not in L1 or x not in L2 or x not in L3 :
                 possible[x] = False
@@ -127,63 +135,80 @@ class grille :
                 L_possible.append(i)
         return (L_possible)
     
-    def ecrire(self, x, y, valeur) :
-        """Ecrit une valeur ou une liste de valeurs possibles dans la case de coord (x,y)"""
-        self.grille[x][y] = valeur
-
-    def cherche_tous_possible(self) :
+    def remplit_possibilitees_par_case(self) :
+        """Cette fonction parcourt toutes les cases et si elles sont libres, on regarde quelles sont les valeurs possibles
+ensuite, on va renvoyer un dictionnaire avec comme clé les coordonnées d'une case libre et comme valeur la liste
+des possibles"""
         for i in range(9) :
             for j in range(9) :
                 if self.grille[i][j] == 0 :
                     L_possible = self.possible_x_y(i,j)
-                    self.dicoliste[(i,j)] = L_possible
-        return self.dicoliste
+                    self.possibilitees_par_case[(i,j)] = L_possible
+        return self.possibilitees_par_case
 
-    def miniz (self) :
-        m = 9
+    def minimum_de_possibilitees (self) :
+        """Cette fonction renvoit un tuple (les coordonnées de la case où il y a le moins de possibilités,
+la liste de valeurs possibles, et le nombre de possibilités)"""
+        m = 9 
         coord = (0,0)
-        for (i,j) in self.dicoliste :
-            if len(self.dicoliste[(i,j)]) < m :
-                m = len(self.dicoliste[(i,j)])
+        for (i,j) in self.possibilitees_par_case :
+            if len(self.possibilitees_par_case[(i,j)]) < m :
+                m = len(self.possibilitees_par_case[(i,j)])
                 coord = (i,j)
-        print("coordonnées = ", coord, " valeur : " , self.dicoliste[coord])
-        return (coord, self.dicoliste[coord], m)
+        print("coordonnées = ", coord, " valeur : " , self.possibilitees_par_case[coord])
+        return (coord, self.possibilitees_par_case[coord], m)
 
-    def certain (self) :
-        self.cherche_tous_possible()
-        M = self.miniz()
+    def main (self) :
+        """Fonction principale qui résolve le sudoku"""
+        #Initialisation : On remplit le dictionnaire des possibilitées
+        self.remplit_possibilitees_par_case()
+
+        #On enregistre dans une matrice ce que nous renvoit minimum_de_possibilitees pour éviter de calculer plusieurs fois
+        M = self.minimum_de_possibilitees()
         while M[2] == 1 :
             print("On place à la coordonée", M[0], "le chiffre", M[1])
             self.grille[M[0][0]][M[0][1]] = M[1][0]
-            self.dicoliste = {}
-            print(M)
-            self.printg()
-            self.cherche_tous_possible()                
-            M = self.miniz()
+            self.print_grille()
+            self.possibilitees_par_case = {}
+            self.remplit_possibilitees_par_case()
+            if len(self.possibilitees_par_case) == 0 :
+                print("C'est fini !")
+                return None
+            M = self.minimum_de_possibilitees()
+            if M[2] == 0 :
+                print("Le sudoku est insoluble...")
+                return None
+            if M[2] > 1 :
+                print("Le sudoku est plus dur que ce que je pensais")
         return None
                                  
             
 
 
 
-A = [[1, 0, 0, 0, 0, 6, 7, 8, 9], [0, 2, 0, 4, 5, 6, 7, 8, 9], [1, 0, 7, 2, 0, 6, 0, 0, 9], [2, 1, 0,0 ,7 , 0, 3, 0, 0], [1, 0, 3, 0, 5, 0, 7, 2, 0], [8, 0, 0, 2, 0, 0, 0, 3, 9], [0, 2, 3, 4, 5, 6, 7, 8, 9], [1, 0, 3, 4, 2, 6, 0, 0, 0], [1, 2, 3, 4, 5, 6, 7, 8, 9]]
-B =[[0,4,0,0,0,2,0,1,9],[0,0,0,3,5,1,0,8,6],[3,1,0,0,9,4,7,0,0],[0,9,4,0,0,0,0,0,7],[0,0,0,0,0,0,0,0,0],[2,0,0,0,0,0,8,9,0],[0,0,9,5,2,0,0,4,1],[4,2,0,1,6,9,0,0,0],[1,6,0,8,0,0,0,7,0]]
-C=[[0,9,2,0,0,4,7,0,0],[1,5,0,0,6,0,2,0,8],[0,0,0,0,1,2,0,4,9],[0,0,0,0,5,8,6,0,0],[8,4,0,0,3,0,0,5,2],[0,0,3,2,9,0,0,0,0],[6,1,0,8,4,0,0,0,0],[2,0,5,0,7,0,0,6,1],[0,0,7,6,0,0,8,9,0]]
+
+"""Sudoku faciles : """
+A=[[0,9,2,0,0,4,7,0,0],[1,5,0,0,6,0,2,0,8],[0,0,0,0,1,2,0,4,9],[0,0,0,0,5,8,6,0,0],[8,4,0,0,3,0,0,5,2],[0,0,3,2,9,0,0,0,0],[6,1,0,8,4,0,0,0,0],[2,0,5,0,7,0,0,6,1],[0,0,7,6,0,0,8,9,0]]
 
 
+B=[[8,1,0,0,9,0,4,7,5],[0,9,5,0,1,4,6,8,2],[6,0,0,5,8,7,0,9,1],[0,0,8,7,2,0,0,6,3],[2,5,7,0,6,0,9,4,8],[9,0,6,8,0,0,1,2,7],[4,7,1,0,3,6,8,0,9],[3,6,2,9,5,0,7,1,0],[5,0,0,0,7,1,2,0,6]]
+
+
+"""Sudoku médium : """
+C=[[1,0,2,4,9,0,0,0,0],[4,5,0,0,6,3,0,9,2],[3,6,9,0,2,0,1,5,4],[6,9,1,5,4,0,0,7,8],[0,2,3,6,8,7,4,1,0],[7,4,0,0,1,9,5,2,6],[2,1,6,0,5,0,7,8,3],[9,3,0,8,7,0,0,4,1],[0,0,0,0,3,1,9,0,5]] 
+
+D =[[0,4,0,0,0,2,0,1,9],[0,0,0,3,5,1,0,8,6],[3,1,0,0,9,4,7,0,0],[0,9,4,0,0,0,0,0,7],[0,0,0,0,0,0,0,0,0],[2,0,0,0,0,0,8,9,0],[0,0,9,5,2,0,0,4,1],[4,2,0,1,6,9,0,0,0],[1,6,0,8,0,0,0,7,0]]
+
+
+""" En ce qui concerne les temps d'éxécution"""
+t1 = time.perf_counter()
+"""Rentrer le sudoku à compléter"""
 grille1 = grille(C)
-grille1.printg()
 
-def miniz (dico) :
-        m = 9
-        coord = (0,0)
-        for (i,j) in dico :
-            if len(dico[(i,j)]) < m :
-                m = len(dico[(i,j)])
-                coord = (i,j)
-        print("coordonnées = ", coord, " valeur : " , dico[coord])
-        return (coord, dico[coord], m)
+grille1.main()
+t2 = time.perf_counter()
 
-dicotest = grille1.cherche_tous_possible()
-R = miniz(dicotest)
-grille1.certain()
+T = t2-t1
+grille1.print_grille()
+print("Le programe s'éxécute en " ,T, "s")
+
