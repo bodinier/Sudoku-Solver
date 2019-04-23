@@ -1,5 +1,5 @@
 import time
-
+import copy
 
 class C_grid :
     """Classe d'une grille : matrice carrée où chaque case est soit un zéro soit un entier entre 1 et 9"""
@@ -7,7 +7,7 @@ class C_grid :
         self.grille = grille
         self.possibilitees_par_case = {}
         self.sauvegarde = {}
-        self.compteur_de_choix = 1
+        self.compteur_de_choix = 0
 
     def print_grille(self) :
         """Méthode qui affiche la grille"""
@@ -178,6 +178,7 @@ la liste de valeurs possibles, et le nombre de possibilités)"""
         return (coord, self.possibilitees_par_case[coord], m)
 
     def main (self) :
+        self.print_grille()
         """Fonction principale qui résolve le sudoku"""
         #Initialisation : On remplit le dictionnaire des possibilitées
         self.remplit_possibilitees_par_case()
@@ -192,11 +193,13 @@ la liste de valeurs possibles, et le nombre de possibilités)"""
             print("On a du faire un mauvais choix")
             self.grille = self.sauvegarde[self.compteur_de_choix]
             del[self.sauvegarde[self.compteur_de_choix]]
+            print("\n \n dico",self.sauvegarde, "\n")
             self.compteur_de_choix -=1
             self.main()
             return None
         if M[2] == 1 :
             print("On place à la coordonée", M[0], "le chiffre", M[1])
+            print("\n \n dico",self.sauvegarde, "\n")
             self.grille[M[0][0]][M[0][1]] = M[1][0]
             self.print_grille()
             self.possibilitees_par_case = {}
@@ -204,8 +207,9 @@ la liste de valeurs possibles, et le nombre de possibilités)"""
             self.main()
         if M[2] >1 :
             self.compteur_de_choix +=1
-            self.sauvegarde[self.compteur_de_choix] = self.grille #Sauvegarde de la grille avant le choix
+            self.sauvegarde[self.compteur_de_choix] = copy.deepcopy(self.grille) #Sauvegarde de la grille avant le choix
             self.sauvegarde[self.compteur_de_choix][M[0][0]][M[0][1]] = M[1][1] #On place le deuxieme choix dans notre sauvegarde
+            print("\n \n dico",self.sauvegarde, "\n")
             print("Attention a fait un choix !")
             print("On place à la coordonée", M[0], "le chiffre", M[1])
             print(self.possibilitees_par_case)
@@ -226,17 +230,21 @@ A=[[0,9,2,0,0,4,7,0,0],[1,5,0,0,6,0,2,0,8],[0,0,0,0,1,2,0,4,9],[0,0,0,0,5,8,6,0,
 B=[[8,1,0,0,9,0,4,7,5],[0,9,5,0,1,4,6,8,2],[6,0,0,5,8,7,0,9,1],[0,0,8,7,2,0,0,6,3],[2,5,7,0,6,0,9,4,8],[9,0,6,8,0,0,1,2,7],[4,7,1,0,3,6,8,0,9],[3,6,2,9,5,0,7,1,0],[5,0,0,0,7,1,2,0,6]]
 
 
-"""Sudoku médium : """
 C=[[1,0,2,4,9,0,0,0,0],[4,5,0,0,6,3,0,9,2],[3,6,9,0,2,0,1,5,4],[6,9,1,5,4,0,0,7,8],[0,2,3,6,8,7,4,1,0],[7,4,0,0,1,9,5,2,6],[2,1,6,0,5,0,7,8,3],[9,3,0,8,7,0,0,4,1],[0,0,0,0,3,1,9,0,5]] 
 
 D =[[0,4,0,0,0,2,0,1,9],[0,0,0,3,5,1,0,8,6],[3,1,0,0,9,4,7,0,0],[0,9,4,0,0,0,0,0,7],[0,0,0,0,0,0,0,0,0],[2,0,0,0,0,0,8,9,0],[0,0,9,5,2,0,0,4,1],[4,2,0,1,6,9,0,0,0],[1,6,0,8,0,0,0,7,0]]
 
+"""Sudoku médium : """
+
 E=[[0,0,0,4,0,2,0,0,0],[2,0,9,0,0,0,3,0,1],[0,8,0,0,0,0,0,7,0],[0,0,0,5,0,6,0,0,0],[9,0,0,0,0,0,0,0,4],[7,1,0,8,0,3,0,2,6],[0,0,0,0,6,0,0,0,0],[0,9,0,0,7,0,0,3,0],[0,4,7,0,8,0,5,6,0]]
 
+F = [[0,4,0,0,0,2,0,1,9],[0,0,0,3,5,1,0,8,6],[3,1,0,0,9,4,7,0,0],[0,9,4,0,0,0,0,0,7],[0,0,0,0,0,0,0,0,0],[2,0,0,0,0,0,8,9,0],[0,0,9,5,2,0,0,4,1],[4,2,0,1,6,9,0,0,0],[1,6,0,8,0,0,0,7,0]]
+
+G=[[1,0,0,0,0,7,0,9,0],[0,3,0,0,2,0,0,0,8],[0,0,9,6,0,0,5,0,0],[0,0,5,3,0,0,9,0,0],[0,1,0,0,8,0,0,0,2],[6,0,0,0,0,4,0,0,0],[3,0,0,0,0,0,0,1,0],[0,4,0,0,0,0,0,0,7],[0,0,7,0,0,0,3,0,0]]
 """ En ce qui concerne les temps d'éxécution"""
 t1 = time.perf_counter()
 """Rentrer le sudoku à compléter"""
-grille1 = C_grid(E)
+grille1 = C_grid(G)
 
 grille1.main()
 t2 = time.perf_counter()
