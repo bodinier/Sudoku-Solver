@@ -1,13 +1,47 @@
 import time
 import copy
 import tkinter as tk
+from tkinter import filedialog
+from tkinter import *
+
+
 
 
 height = 450
 width  = 450
 size_square = 50
 
+#il faut transformer le .read en liste    
+def oopen():
+    print("Open !")
+    root = Tk()
+    root.filename =  filedialog.askopenfilename(initialdir = "/home/moulan",title = "Select file",filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
+    fichier=open(root.filename,"r")
+    G=fichier.read()
+    fill_sudoku(canvas,G)
+    print (root.filename)
+
+def save():
+    print("Save !")
+    root = Tk()
+    root.filename =  filedialog.asksaveasfilename(initialdir = "/home",title = "Select file",filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
+    print (root.filename)
+
+
+def solve():
+    grille1 = C_grid(G)
+    grille1.sudoku()
+    print("Solve !")
+
 def initWin(window):
+    menu_bar = tk.Menu(window)
+    filemenu = tk.Menu(menu_bar)
+    filemenu.add_command(label="Open", command=oopen)
+    filemenu.add_command(label="Save", command=save)
+    filemenu.add_command(label="Solve", command=solve)
+    menu_bar.add_cascade(label="File", menu=filemenu)
+    
+    window.config(menu=menu_bar)
     canvas = tk.Canvas(window,width=width,height=height)
     canvas.pack()
     return  canvas
@@ -52,7 +86,7 @@ class C_grid :
                 if j == 0 :
                     print("|", end = '')
                 if j%3 == 0 and j>0:
-                    print("     ", end='')
+                    print("     ", end ='')
                     print('|', end = '')
                 print(self.grille[i][j]," |", end = '  ')
             if( i+1)%3 == 0 and i>0 :
@@ -260,6 +294,10 @@ la liste de valeurs possibles, et le nombre de possibilités)"""
             self.remplit_possibilitees_par_case()
             self.sudoku()
         return None
+        
+    
+
+
 
 
 
@@ -288,18 +326,15 @@ if __name__ == '__main__':
     window = tk.Tk()
     canvas = initWin(window)
     draw_grid(canvas)
-    fill_sudoku(canvas,G)
     
     """ En ce qui concerne les temps d'éxécution"""
     
     t1 = time.perf_counter()
     
-    grille1 = C_grid(G)
-    grille1.sudoku()
+
     t2 = time.perf_counter()
     T = t2-t1
     print("Le programe s'éxécute en " ,T, "s")
-    
     window.mainloop()
 
 
