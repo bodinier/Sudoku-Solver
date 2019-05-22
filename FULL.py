@@ -1,52 +1,75 @@
 import time
 import copy
 import tkinter as tk
-from tkinter import filedialog
 from tkinter import *
+from tkinter import filedialog
 
-
-
+#               Dimensions de l'écran interface
 
 height = 450
 width  = 450
 size_square = 50
+global grille_sudoku
+grille_sudoku = []
 
-#il faut transformer le .read en liste    
+
+#               Définition des fonctions pour l'interface
+
 def oopen():
-    print("Open !")
+    """Permet d'ouvrir une grille dans un menu déroulant"""
     root = Tk()
-    root.filename =  filedialog.askopenfilename(initialdir = "/home/moulan",title = "Select file",filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
-    fichier=open(root.filename,"r")
-    G=fichier.read()
-    fill_sudoku(canvas,G)
-    print (root.filename)
+    root.filename =  filedialog.askopenfilename(initialdir = "/home/moulan",title = "Select file",filetypes = (("txt files","*.txt"),("all files",".*")))
+    file=open(root.filename,'r')
+    for i in range (9):
+        grille_sudoku.append(list(file.readline()))
+        del grille_sudoku[i][9]
+        for j in range(9):
+            grille_sudoku[i][j]=int(grille_sudoku[i][j])
+
+    fill_sudoku(canvas,grille_sudoku) #Remplit la grille avec les chiffres initiaux 
+    print(grille_sudoku)
+    print("Open !")
+    
+
+
 
 def save():
+    """Permet de sauvegarder la grille dans un fichier"""
     print("Save !")
     root = Tk()
-    root.filename =  filedialog.asksaveasfilename(initialdir = "/home",title = "Select file",filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
+    root.filename =  filedialog.asksaveasfilename(initialdir = "/home",title = "Select file",filetypes = (("jpeg files",".jpg"),("all files",".*")))
     print (root.filename)
 
 
 def solve():
-    grille1 = C_grid(G)
+    """Lance la résolution du sudoku"""
+    """ En ce qui concerne les temps d'éxécution"""
+    grille1 = C_grid(H)
+    t1 = time.perf_counter()
     grille1.sudoku()
+    t2 = time.perf_counter()
+    T = t2-t1
+    print("Le programe s'éxécute en " ,T, "s")
+
     print("Solve !")
 
+
 def initWin(window):
-    menu_bar = tk.Menu(window)
+    """Initialise l'interface"""
+    canvas = tk.Canvas(window,width=width,height=height)
+    canvas.pack()
+    menu_bar = tk.Menu(window) #barre du menu
     filemenu = tk.Menu(menu_bar)
     filemenu.add_command(label="Open", command=oopen)
     filemenu.add_command(label="Save", command=save)
     filemenu.add_command(label="Solve", command=solve)
     menu_bar.add_cascade(label="File", menu=filemenu)
-    
     window.config(menu=menu_bar)
-    canvas = tk.Canvas(window,width=width,height=height)
-    canvas.pack()
     return  canvas
 
+
 def draw_grid(canvas):
+    """Affichage des chiffres dans la grille de sudoku"""
     for i in range(0,10):
         if i%3 == 0:
             canvas.create_line(i*size_square, 0,i*size_square, size_square*9,width=3)
@@ -57,27 +80,38 @@ def draw_grid(canvas):
 
 
 def clear_grid(canvas):
+    """Réinitialise une grille"""
     canvas.delete("all")
     draw_grid(canvas)
 
 
 def draw_sudoku(canvas,x,y,num):
+    """Création de la grille"""
     canvas.create_text((2*x+1)*size_square/2,(2*y+1)*size_square/2,text=str(num))
 
+
 def fill_sudoku(canvas, M) :
+    """Remplit le sudoku des chiffres manquants, contenus dans la matrice M"""
     for i in range(9):
         for j in range(9) :
             if M[i][j] != 0 :
                 canvas.create_text((2*j+1)*size_square/2,(2*i+1)*size_square/2,text=str(M[i][j]))
 
 
+#               Définition des fonctions pour la résolution
+
 class C_grid :
     """Classe d'une grille : matrice carrée où chaque case est soit un zéro soit un entier entre 1 et 9"""
+#               Initialisation
+
     def __init__(self, grille) :
+        """On initialise nos dictionnaires et on défini les variables"""
+        self.bareme = 0
         self.grille = grille
         self.possibilitees_par_case = {}
         self.sauvegarde = {}
         self.compteur_de_choix = 0
+
 
     def print_grille(self) :
         """Méthode qui affiche la grille"""
@@ -93,8 +127,9 @@ class C_grid :
                 print('')
             print('')
             
+            
     def print_grille_2(self, M) :
-        """Méthode qui affiche la grille"""
+        """Méthode qui affiche la grille M placée en argument"""
         for i in range(9) :
             for j in range(9) :
                 if j == 0 :
@@ -107,9 +142,13 @@ class C_grid :
                 print('')
             print('')
 
+
     def grid(self) :
         """Permet d'acccéder à la grille"""
         return self.grille
+
+
+#               Fonctions d'accès aux donnée d'une case par coordonnées
 
     def ligne(self, x, y) :
         """"Prend les coordonnée d'une case et renvoit la ligne (sous forme de liste) sur laquelle cette case se trouve"""
@@ -121,6 +160,7 @@ class C_grid :
             L.append(self.grille[x][i])
         return L
 
+
     def colonne(self, x, y) :
         """Prend les coordonnée d'une case et renvoit la colonne (sous forme de liste) sur laquelle cette case se trouve"""
         if x<0 or x >8 or y<0 or y>8 :
@@ -130,6 +170,7 @@ class C_grid :
         for i in range(9) :
             L.append(self.grille[i][y])
         return L
+
 
     def carre(self, x, y) :
         """Prend les coordonnée d'une case et renvoit dans  lequelle cette case se trouve sous forme de matrice 3x3"""
@@ -151,6 +192,8 @@ class C_grid :
             c +=1
         return M
     
+#               Fonctions calculant les valeurs possibles par cases
+
     def possible_ligne(self,x, y) :
             """Prend en argument les coordonées d'une case et  renvoit quelles sont les valeurs possibles en fonction des autres valeurs sur la ligne"""
             if x<0 or x >8 :
@@ -169,6 +212,7 @@ class C_grid :
                     L_possible.append(j)
             return L_possible
 
+
     def possible_colonne(self, x, y) :
             """Prend en argument une colonne et un indice y et renvoit quelles sont les valeurs possibles en fonction des autres valeurs sur la ligne"""
             if y<0 or y >8 :
@@ -184,6 +228,7 @@ class C_grid :
                 if possible[j] :
                     L_possible.append(j)
             return L_possible
+
 
     def possible_carre(self, x, y) :
             """Prend en argument une coordonnée (x,y) et renvoit quelles sont les valeurs possibles en fonction des autres valeurs sur la ligne"""
@@ -201,6 +246,7 @@ class C_grid :
                 if possible[i] :
                     L_possible.append(i)
             return L_possible
+
 
     def possible_x_y(self, x, y) :
         """Prend les coordoonnées d'une case et renvoit quelles sont les valeurs possibles"""
@@ -221,6 +267,7 @@ class C_grid :
                 L_possible.append(i)
         return (L_possible)
     
+    
     def remplit_possibilitees_par_case(self) :
         """Cette fonction parcourt toutes les cases et si elles sont libres, on regarde quelles sont les valeurs possibles
 ensuite, on va renvoyer un dictionnaire avec comme clé les coordonnées d'une case libre et comme valeur la liste
@@ -232,74 +279,71 @@ des possibles"""
                     self.possibilitees_par_case[(i,j)] = L_possible
         return self.possibilitees_par_case
 
+
     def minimum_de_possibilitees (self) :
         """Cette fonction renvoit un tuple (les coordonnées de la case où il y a le moins de possibilités,
 la liste de valeurs possibles, et le nombre de possibilités)"""
         m = 9 
         coord = (0,0)
         if len(self.possibilitees_par_case) == 0 :
-            print("Le dico est vide \n")
+            #print("Le dico est vide \n")
             return None
         for (i,j) in self.possibilitees_par_case :
             if len(self.possibilitees_par_case[(i,j)]) < m :
                 m = len(self.possibilitees_par_case[(i,j)])
                 coord = (i,j)
-        print("coordonnées = ", coord, " valeur : " , self.possibilitees_par_case[coord])
+        #print("coordonnées = ", coord, " valeur : " , self.possibilitees_par_case[coord])
         return (coord, self.possibilitees_par_case[coord], m)
 
+
+#               Main :
+
+
     def sudoku (self) :
-        #self.print_grille()
         """Fonction principale qui résolve le sudoku"""
         #Initialisation : On remplit le dictionnaire des possibilitées
         self.remplit_possibilitees_par_case()
-        #print(self.possibilitees_par_case)
-        #print(self.sauvegarde)
+
         #On enregistre dans une matrice ce que nous renvoit minimum_de_possibilitees pour éviter de calculer plusieurs fois
         M = self.minimum_de_possibilitees()
         if len(self.possibilitees_par_case) == 0 :
             print("Le sudoku est fini \n\n")
             return None
         if M[2] == 0 :
-            #print("On a du faire un mauvais choix")
+            # On a du faire un mauvais choix car aucune valeur n'est possible, on revient à la sauvegarde précédente
             self.grille = self.sauvegarde[self.compteur_de_choix]
             clear_grid(canvas)
             fill_sudoku(canvas,self.grille)
             del[self.sauvegarde[self.compteur_de_choix]]
-            #print("\n \n dico",self.sauvegarde, "\n")
             self.compteur_de_choix -=1
             self.sudoku()
             return None
         if M[2] == 1 :
-            #print("On place à la coordonée", M[0], "le chiffre", M[1])
-           # print("\n \n dico",self.sauvegarde, "\n")
+            # Il n'y a qu'une seule possibilité, on la place donc
             self.grille[M[0][0]][M[0][1]] = M[1][0]
             draw_sudoku(canvas,M[0][1], M[0][0], M[1][0])
-            #self.print_grille()
             self.possibilitees_par_case = {}
             self.remplit_possibilitees_par_case()
+            self.bareme +=1
             self.sudoku()
         if M[2] >1 :
+            # Il va falloir faire un choix car on a plusieurs possibilitées
             self.compteur_de_choix +=1
             self.sauvegarde[self.compteur_de_choix] = copy.deepcopy(self.grille) #Sauvegarde de la grille avant le choix
             self.sauvegarde[self.compteur_de_choix][M[0][0]][M[0][1]] = M[1][1] #On place le deuxieme choix dans notre sauvegarde
-            #print("\n \n dico",self.sauvegarde, "\n")
-            #print("Attention a fait un choix !")
-            #print("On place à la coordonée", M[0], "le chiffre", M[1])
-            #print(self.possibilitees_par_case)
             self.grille[M[0][0]][M[0][1]] = M[1][0] # On choisi le premier de la liste
             #des possibles
             draw_sudoku(canvas,M[0][1], M[0][0], M[1][0])
-            #self.print_grille()
             self.possibilitees_par_case = {}
             self.remplit_possibilitees_par_case()
+            if M[2] > 2 :
+                self.bareme += 3
+            self.bareme += 3
             self.sudoku()
         return None
-        
-    
 
 
-
-
+#               Grilles de Sudoku pré-enregistrées :
 
 """Sudoku faciles : """
 A=[[0,9,2,0,0,4,7,0,0],[1,5,0,0,6,0,2,0,8],[0,0,0,0,1,2,0,4,9],[0,0,0,0,5,8,6,0,0],[8,4,0,0,3,0,0,5,2],[0,0,3,2,9,0,0,0,0],[6,1,0,8,4,0,0,0,0],[2,0,5,0,7,0,0,6,1],[0,0,7,6,0,0,8,9,0]]
@@ -322,21 +366,27 @@ F = [[0,4,0,0,0,2,0,1,9],[0,0,0,3,5,1,0,8,6],[3,1,0,0,9,4,7,0,0],[0,9,4,0,0,0,0,
 
 G=[[1,0,0,0,0,7,0,9,0],[0,3,0,0,2,0,0,0,8],[0,0,9,6,0,0,5,0,0],[0,0,5,3,0,0,9,0,0],[0,1,0,0,8,0,0,0,2],[6,0,0,0,0,4,0,0,0],[3,0,0,0,0,0,0,1,0],[0,4,0,0,0,0,0,0,7],[0,0,7,0,0,0,3,0,0]]
 
+H = [[0,0,0,0,0,7,0,8,9],[1,0,8,0,5,0,0,0,0],[7,0,0,2,0,0,0,0,0],[0,5,0,0,2,0,9,0,8],[0,0,7,0,0,0,3,0,0],[8,0,6,0,7,0,0,2,0],[0,0,0,0,0,4,0,0,3],[0,0,0,0,6,0,1,0,4],[2,4,0,9,0,0,0,0,0]]
+
+
+#               Main : 
+
 if __name__ == '__main__':
     window = tk.Tk()
     canvas = initWin(window)
-    draw_grid(canvas)
-    
-    """ En ce qui concerne les temps d'éxécution"""
-    
-    t1 = time.perf_counter()
-    
+    draw_grid(canvas) #crée une grille vierge
+    #fill_sudoku(canvas,B) #Remplit la grille avec les chiffres initiaux 
 
-    t2 = time.perf_counter()
-    T = t2-t1
-    print("Le programe s'éxécute en " ,T, "s")
+    """Evaluation de la difficulté"""
+    #if grille1.bareme <= 35 :
+     #   print("Le Sudoku est facile")
+    #if grille1.bareme >35 and grille1.bareme <= 80 :
+     #   print("Le Sudoku est moyen")
+    #if grille1.bareme >80 :
+     #   print("Le Sudoku est dur")
+    
+    
+    
     window.mainloop()
 
 
-
-"""Idée  : On pourrait faire un barème genre +10 si on a 3 choix à faire, +5 à chaque fois qu'on a deux choix à faire etc. Ensuite on fait le bilan et on dit à l'utilisateur si son sudoku est facile, moyen ou dur"""
